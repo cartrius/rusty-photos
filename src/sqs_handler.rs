@@ -1,5 +1,6 @@
 use aws_sdk_sqs::Client as SqsClient;
 use aws_sdk_s3::Client as S3Client;
+use aws_sdk_sqs::types::Message;
 use std::error::Error;
 
 pub async fn receive_messages(
@@ -14,7 +15,7 @@ pub async fn receive_messages(
         .send()
         .await?;
 
-    Ok(response.messages().unwrap_or_default().to_vec())
+    Ok(response.messages().to_vec())
 }
 
 pub async fn delete_message(
