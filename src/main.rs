@@ -47,6 +47,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     // Process image
                     let processed_images = image_processing::process_image(object_data)?;
                     println!("Processed {} images", processed_images.len());
+
+                    for (suffix, image_bytes) in processed_images {
+                        // Build a new key (Ex: "processed/thumb_filename.jpg")
+                        let filename = key.rsplit('/').next().unwrap_or("file.jpg");
+                        let new_key = format!("processed/{}_{}", suffix, filename);
+
+                        s3_ops::upload_object(&s3_client, &bucket, &new_key, image_bytes, "image/jpeg").await?;
+                        println!("Uploaded {}", new_key);
+                    }
                 }
             }
 
