@@ -1,5 +1,4 @@
 use aws_sdk_sqs::Client as SqsClient;
-use aws_sdk_s3::Client as S3Client;
 use aws_sdk_sqs::types::Message;
 use std::error::Error;
 

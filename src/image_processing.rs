@@ -1,5 +1,5 @@
 use std::error::Error;
-use image::{ImageOutputFormat, GenericImageView};
+use image::ImageOutputFormat;
 
 pub fn process_image(input_bytes: Vec<u8>) -> Result<Vec<(String, Vec<u8>)>, Box<dyn Error>> {
     // Decode raw bytes into an image
