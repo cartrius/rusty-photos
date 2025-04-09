@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::error::Error;
 use std::time::Duration;
+use tower_http::cors::CorsLayer;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -15,6 +16,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Load AWS config
     let shared_config = aws_config::defaults(BehaviorVersion::latest()).load().await;
     let s3_client = S3Client::new(&shared_config);
+
+    let cors = CorsLayer::permissive();
 
     // Build Axum router
     let app = Router::new().route(
@@ -30,7 +33,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let s3 = s3_client.clone();
             move || list_images_handler(s3.clone())
         })
-    );
+    )
+    .layer(cors);
 
     // Define the port
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -88,7 +92,7 @@ async fn list_images_handler(s3_client: S3Client) -> Json<ImageListResponse> {
     let mut keys = Vec::new();
     for obj in response.contents() {
         if let Some(key) = obj.key() {
-            let url = format!("https://{bucket}.s3.aazonaws.com/{key}");
+            let url = format!("https://{bucket}.s3.amazonaws.com/{key}");
             keys.push(url);
         }
     }
