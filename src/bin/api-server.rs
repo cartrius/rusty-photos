@@ -92,6 +92,12 @@ async fn list_images_handler(s3_client: S3Client) -> Json<ImageListResponse> {
     let mut keys = Vec::new();
     for obj in response.contents() {
         if let Some(key) = obj.key() {
+
+            // Helps eliminate 0 byte included-object within S3 folder
+            if !key.ends_with(".jpg") && !key.ends_with(".png") && !key.ends_with(".jpeg") {
+                continue;
+            }
+            
             let url = format!("https://{bucket}.s3.amazonaws.com/{key}");
             keys.push(url);
         }
