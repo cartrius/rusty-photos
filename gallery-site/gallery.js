@@ -22,6 +22,12 @@ async function uploadImage(file) {
   try {
     const key = `uploads/${file.name}`;
 
+    const allowedTypes = ["image/png", "image/jpeg"];
+    if (!allowedTypes.includes(file.type)) {
+    alert("Only PNG or JPG files allowed!");
+    return;
+  }
+
     // Get a pre-signed URL
     const response = await fetch(
       `http://localhost:3000/get-upload-url?key=${encodeURIComponent(key)}`
