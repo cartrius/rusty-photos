@@ -70,18 +70,54 @@ async function loadGallery() {
     gallery.innerHTML = "";
 
     imageUrls.forEach(url => {
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "";
+      const container = document.createElement("div");
+      container.classList.add("photo-item");
 
       const img = document.createElement("img");
       img.src = url;
       img.alt = "Processed image";
+      container.appendChild(img);
 
-      a.appendChild(img);
-      gallery.appendChild(a);
+      // Create a "Delete" button
+      const delBtn = document.createElement("button");
+      delBtn.classList.add("delete-btn");
+      delBtn.innerHTML = "🗑️";
+      delBtn.title = "Delete Photo";
+      delBtn.addEventListener("click", () => {
+        handleDelete(url);
+      });
+      container.appendChild(delBtn);
+      gallery.appendChild(container);
     });
   } catch (err) {
     console.error("Error loading gallery:", err);
+  }
+}
+
+async function handleDelete(processedUrl) {
+  // Extract the filename, e.g. "thumb_myphoto.jpg"
+  const parts = processedUrl.split("/");
+  const processedFilename = parts[parts.length - 1]; 
+
+  // Remove "thumb_" or "medium_" if present
+  let baseFilename = processedFilename.replace("thumb_", "");
+  baseFilename = baseFilename.replace("medium_", "");
+
+  // e.g. "uploads/myphoto.jpg"
+  const originalKey = `uploads/${baseFilename}`;
+
+  // Call the DELETE endpoint
+  const deleteUrl = `http://localhost:3000/photos/${encodeURIComponent(originalKey)}`;
+  try {
+    const resp = await fetch(deleteUrl, { method: "DELETE" });
+    if (resp.ok) {
+      alert(`Deleted ${originalKey} successfully!`);
+      // Re-load the gallery
+      loadGallery();
+    } else {
+      alert(`Failed to delete ${originalKey}.`);
+    }
+  } catch (error) {
+    console.error("Error deleting photo:", error);
   }
 }

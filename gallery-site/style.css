@@ -58,3 +58,42 @@ body {
   .cool-upload-btn:hover {
     background-color: #00812f;
   }
+
+/* Each photo + delete icon sits inside this .photo-item container */
+.photo-item {
+  position: relative;
+  display: inline-block;
+  margin: 1rem;
+  text-align: center;
+}
+
+.photo-item img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+  border-radius: 8px; 
+}
+
+/* The delete button is hidden by default */
+.photo-item .delete-btn {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #fff;
+  text-shadow: 0 0 3px rgba(0,0,0,0.5);
+}
+
+/* Show the delete icon on hover */
+.photo-item:hover .delete-btn {
+  display: inline-block;
+}
+
+.photo-item .delete-btn:hover {
+  color: #ff4444;
+}
