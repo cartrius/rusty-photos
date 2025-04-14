@@ -1,5 +1,5 @@
 use aws_sdk_s3::presigning::PresigningConfig;
-use axum::{routing::get, Router, extract::Query, Json};
+use axum::{routing::{get, delete}, response::IntoResponse, Router, extract::{Path, Query}, Json};
 use aws_config::BehaviorVersion;
 use aws_sdk_s3::Client as S3Client;
 use serde::{Deserialize, Serialize};
@@ -33,6 +33,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let s3 = s3_client.clone();
             move || list_images_handler(s3.clone())
         })
+    ).route(
+        "/photos/*key", // Catch-all if your key has slashes
+        delete({
+            let s3 = s3_client.clone();
+            move |path: Path<String>| delete_photo_handler(path, s3.clone())
+        }),
     )
     .layer(cors);
 
@@ -104,4 +110,46 @@ async fn list_images_handler(s3_client: S3Client) -> Json<ImageListResponse> {
     }
 
     Json(ImageListResponse { images: keys })
+}
+
+pub async fn delete_photo_handler(
+    Path(key): Path<String>,
+    s3_client: S3Client,
+) -> impl IntoResponse {
+    // Read the bucket from env/config
+    let bucket = std::env::var("S3_BUCKET_NAME")
+        .unwrap_or_else(|_| "my-photo-bucket".to_string());
+
+    // Delete the original
+    if let Err(e) = s3_client
+        .delete_object()
+        .bucket(&bucket)
+        .key(&key)
+        .send()
+        .await
+    {
+        eprintln!("Error deleting original file {}: {:?}", key, e);
+    }
+
+    // Figure out processed variants (Ex: uploads/phto1.jpg may also be processed/phto1.jpg)
+    let filename = key.rsplit('/').next().unwrap_or("file.jpg");
+    let thumb_key = format!("processed/thumb_{}", filename);
+    let medium_key = format!("processed/medium_{}", filename);
+
+    // Delete each processed variant
+    let _ = s3_client
+        .delete_object()
+        .bucket(&bucket)
+        .key(thumb_key.clone())
+        .send()
+        .await;
+
+    let _ = s3_client
+        .delete_object()
+        .bucket(&bucket)
+        .key(medium_key.clone())
+        .send()
+        .await;
+
+    println!("Deleted photo {} and processed variants", key);
 }
